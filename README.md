@@ -1,2 +1,2 @@
 # packed_booleans
- Rust packed_booleans crate.
+Rust packed_booleans crate.
