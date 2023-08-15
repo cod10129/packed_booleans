@@ -6,6 +6,7 @@ use core::ops::{BitAnd, BitOr, BitXor, Not, BitAndAssign, BitOrAssign, BitXorAss
 
 /// A type containing 8 `bool` values,
 /// while only being a single byte.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
 #[repr(transparent)]
 pub struct PackedBools(u8);
