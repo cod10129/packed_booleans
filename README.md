@@ -8,3 +8,6 @@ which is unnecessary and wastes space.
 
 This crate exists to solve that problem. 
 The `PackedBools` type contains 8 booleans at the cost of only a single byte of memory.
+
+## no_std
+This crate is fully `no_std` compatible.
