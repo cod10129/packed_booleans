@@ -163,8 +163,23 @@ impl Iterator for IntoIter {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.idx > 7 { return None }
+        let val = self.bools.try_get(self.idx);
         self.idx += 1;
-        self.bools.try_get(self.idx)
+        val
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = 7u8.saturating_sub(self.idx).into();
+        (len, Some(len))
+    }
+
+    // This function is defined here for optimization
+    fn last(self) -> Option<Self::Item>
+        where
+            Self: Sized, {
+        if self.idx > 7 { None }
+        else { Some(self.bools.get(7)) }
     }
 }
 
