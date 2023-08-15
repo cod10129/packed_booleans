@@ -163,9 +163,8 @@ impl Iterator for IntoIter {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.idx <= 7 { return None }
         self.idx += 1;
-        Some(self.bools.get(self.idx))
+        self.bools.try_get(self.idx)
     }
 }
 
