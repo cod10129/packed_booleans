@@ -39,9 +39,15 @@ impl PackedBools {
     /// 
     /// Panics if the given index is greater than 7.
     pub fn get(&self, idx: u8) -> bool {
+        self.try_get(idx).expect("The index cannot be greater than 7.")
+    }
+
+    /// Gets the boolean at the given index, 
+    /// if the index is less than or equal to 7.
+    pub fn try_get(&self, idx: u8) -> Option<bool> {
         match idx {
-            0..=7 => ((self.0 >> idx) & 1) != 0,
-            _ => panic!("The index cannot be greater than 7.")
+            0..=7 => Some(((self.0 >> idx) & 1) != 0),
+            _ => None
         }
     }
 
@@ -51,12 +57,19 @@ impl PackedBools {
     /// 
     /// Panics if the given index is greater than 7.
     pub fn set(&mut self, val: bool, idx: u8) {
+        self.try_set(val, idx).expect("The index cannot be greater than 7.")
+    }
+
+    /// Sets the boolean at the given index to val,
+    /// if the index is less than or equal to 7.
+    pub fn try_set(&mut self, val: bool, idx: u8) -> Option<()> {
         match idx {
             0..=7 => {
                 if val { self.0 |= 1 << idx }
                 else { self.0 &= !(1 << idx) }
+                Some(())
             },
-            _ => panic!("The index cannot be greater than 7.")
+            _ => None
         }
     }
 
@@ -66,9 +79,18 @@ impl PackedBools {
     /// 
     /// Panics if the given index is greater than 7.
     pub fn toggle(&mut self, idx: u8) {
+        self.try_toggle(idx).expect("The index cannot be greater than 7.")
+    }
+
+    /// Toggles the boolean at the given index,
+    /// if the index is less than or equal to 7.
+    pub fn try_toggle(&mut self, idx: u8) -> Option<()> {
         match idx {
-            0..=7 => self.0 ^= 1 << idx,
-            _ => panic!("The index cannot be greater than 7.")
+            0..=7 => {
+                self.0 ^= 1 << idx;
+                Some(())
+            },
+            _ => None
         }
     }
 }
