@@ -2,7 +2,10 @@
 
 #![no_std]
 
-use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
+use core::{
+    iter::FusedIterator,
+    ops::{self, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
+};
 
 /// A type containing 8 `bool` values,
 /// while only being a single byte.
@@ -156,43 +159,46 @@ impl IntoIterator for PackedBools {
     type IntoIter = IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        IntoIter {
-            bools: self,
-            idx: 0,
-        }
+        IntoIter::new(self)
     }
 }
 
 pub struct IntoIter {
     bools: PackedBools,
-    idx: u8,
+    range: ops::Range<u8>,
+}
+
+impl IntoIter {
+    fn new(bools: PackedBools) -> Self {
+        Self { bools, range: 0..8 }
+    }
 }
 
 impl Iterator for IntoIter {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.idx > 7 {
-            return None;
-        }
-        let val = self.bools.try_get(self.idx);
-        self.idx += 1;
-        val
+        self.range.next().map(|idx| self.bools.get(idx))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = 7u8.saturating_sub(self.idx).into();
-        (len, Some(len))
-    }
-
-    // This function is defined here for optimization
-    fn last(self) -> Option<Self::Item>
-    where
-        Self: Sized,
-    {
-        (self.idx <= 7).then_some(self.bools.get(7))
+        self.range.size_hint()
     }
 }
+
+impl DoubleEndedIterator for IntoIter {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.range.next_back().map(|idx| self.bools.get(idx))
+    }
+}
+
+impl ExactSizeIterator for IntoIter {
+    fn len(&self) -> usize {
+        self.size_hint().0
+    }
+}
+
+impl FusedIterator for IntoIter {}
 
 #[cfg(test)]
 mod tests {
@@ -202,7 +208,10 @@ mod tests {
     fn assert_size() {
         // This is the core reason to even use this type
         // over multiple bools, so this should be assured in the tests.
-        assert_eq!(1, core::mem::size_of::<PackedBools>())
+        assert_eq!(1, core::mem::size_of::<PackedBools>());
+
+        // This is key to certain iterator optimizations
+        assert_eq!(1, core::mem::size_of::<Option<bool>>());
     }
 
     #[test]
