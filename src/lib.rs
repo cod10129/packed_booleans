@@ -4,7 +4,7 @@
 
 use core::{
     iter::FusedIterator,
-    ops::{self, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
+    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
 };
 
 /// A type containing 8 `bool` values,
@@ -163,15 +163,60 @@ impl IntoIterator for PackedBools {
     }
 }
 
+/// This struct is a smaller range than `ops::Range<u8>` for `IntoIter`,
+/// considering the values will only ever go up to 8.
+#[repr(transparent)]
+struct PackedU8Range(u8);
+
+impl PackedU8Range {
+    fn new(start: u8, end: u8) -> Self {
+        let mut val = start << 4;
+        val |= end;
+        PackedU8Range(val)
+    }
+
+    fn get_start(&self) -> u8 {
+        self.0 >> 4
+    }
+
+    fn get_end(&self) -> u8 {
+        self.0 & 0b00001111
+    }
+
+    fn iter_next(&mut self) -> Option<u8> {
+        let start = self.get_start();
+        (self.0 < 0b11110000 && start < self.get_end()).then(|| {
+            self.0 += 0b0001000; // increment start
+            start
+        })
+    }
+
+    fn iter_next_back(&mut self) -> Option<u8> {
+        let end = self.get_end();
+        (end > 0 && self.get_start() < end).then(|| {
+            self.0 -= 1; // decrement end
+            end
+        })
+    }
+
+    fn len(&self) -> usize {
+        (self.get_end() - self.get_start()).into()
+    }
+}
+
 /// An iterator over the booleans in a `PackedBools`.
+#[repr(C)]
 pub struct IntoIter {
     bools: PackedBools,
-    range: ops::Range<u8>,
+    range: PackedU8Range,
 }
 
 impl IntoIter {
     fn new(bools: PackedBools) -> Self {
-        Self { bools, range: 0..8 }
+        Self {
+            bools,
+            range: PackedU8Range::new(0, 8),
+        }
     }
 }
 
@@ -179,23 +224,24 @@ impl Iterator for IntoIter {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.range.next().map(|idx| self.bools.get(idx))
+        self.range.iter_next().map(|idx| self.bools.get(idx))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.range.size_hint()
+        let len = self.range.len();
+        (len, Some(len))
     }
 }
 
 impl DoubleEndedIterator for IntoIter {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.range.next_back().map(|idx| self.bools.get(idx))
+        self.range.iter_next_back().map(|idx| self.bools.get(idx))
     }
 }
 
 impl ExactSizeIterator for IntoIter {
     fn len(&self) -> usize {
-        self.size_hint().0
+        self.range.len()
     }
 }
 
@@ -210,9 +256,6 @@ mod tests {
         // This is the core reason to even use this type
         // over multiple bools, so this should be assured in the tests.
         assert_eq!(1, core::mem::size_of::<PackedBools>());
-
-        // This is key to certain iterator optimizations
-        assert_eq!(1, core::mem::size_of::<Option<bool>>());
     }
 
     #[test]
