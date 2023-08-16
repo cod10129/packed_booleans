@@ -163,6 +163,7 @@ impl IntoIterator for PackedBools {
     }
 }
 
+/// An iterator over the booleans in a `PackedBools`.
 pub struct IntoIter {
     bools: PackedBools,
     range: ops::Range<u8>,
