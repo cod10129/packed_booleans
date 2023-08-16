@@ -2,7 +2,7 @@
 
 #![no_std]
 
-use core::ops::{BitAnd, BitOr, BitXor, Not, BitAndAssign, BitOrAssign, BitXorAssign};
+use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
 
 /// A type containing 8 `bool` values,
 /// while only being a single byte.
@@ -34,30 +34,32 @@ impl PackedBools {
     }
 
     /// Gets the boolean at the given index.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the given index is greater than 7.
     pub fn get(&self, idx: u8) -> bool {
-        self.try_get(idx).expect("The index cannot be greater than 7.")
+        self.try_get(idx)
+            .expect("The index cannot be greater than 7.")
     }
 
-    /// Gets the boolean at the given index, 
+    /// Gets the boolean at the given index,
     /// if the index is less than or equal to 7.
     pub fn try_get(&self, idx: u8) -> Option<bool> {
         match idx {
             0..=7 => Some(((self.0 >> idx) & 1) != 0),
-            _ => None
+            _ => None,
         }
     }
 
     /// Sets the boolean at the given index to val.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the given index is greater than 7.
     pub fn set(&mut self, val: bool, idx: u8) {
-        self.try_set(val, idx).expect("The index cannot be greater than 7.")
+        self.try_set(val, idx)
+            .expect("The index cannot be greater than 7.")
     }
 
     /// Sets the boolean at the given index to val,
@@ -65,21 +67,25 @@ impl PackedBools {
     pub fn try_set(&mut self, val: bool, idx: u8) -> Option<()> {
         match idx {
             0..=7 => {
-                if val { self.0 |= 1 << idx }
-                else { self.0 &= !(1 << idx) }
+                if val {
+                    self.0 |= 1 << idx
+                } else {
+                    self.0 &= !(1 << idx)
+                }
                 Some(())
-            },
-            _ => None
+            }
+            _ => None,
         }
     }
 
     /// Toggles the boolean at the given index.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the given index is greater than 7.
     pub fn toggle(&mut self, idx: u8) {
-        self.try_toggle(idx).expect("The index cannot be greater than 7.")
+        self.try_toggle(idx)
+            .expect("The index cannot be greater than 7.")
     }
 
     /// Toggles the boolean at the given index,
@@ -89,8 +95,8 @@ impl PackedBools {
             0..=7 => {
                 self.0 ^= 1 << idx;
                 Some(())
-            },
-            _ => None
+            }
+            _ => None,
         }
     }
 }
@@ -150,20 +156,25 @@ impl IntoIterator for PackedBools {
     type IntoIter = IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        IntoIter { bools: self, idx: 0 }
+        IntoIter {
+            bools: self,
+            idx: 0,
+        }
     }
 }
 
 pub struct IntoIter {
     bools: PackedBools,
-    idx: u8
+    idx: u8,
 }
 
 impl Iterator for IntoIter {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.idx > 7 { return None }
+        if self.idx > 7 {
+            return None;
+        }
         let val = self.bools.try_get(self.idx);
         self.idx += 1;
         val
@@ -176,10 +187,10 @@ impl Iterator for IntoIter {
 
     // This function is defined here for optimization
     fn last(self) -> Option<Self::Item>
-        where
-            Self: Sized, {
-        if self.idx > 7 { None }
-        else { Some(self.bools.get(7)) }
+    where
+        Self: Sized,
+    {
+        (self.idx <= 7).then_some(self.bools.get(7))
     }
 }
 
@@ -198,9 +209,7 @@ mod tests {
     fn set_get() {
         let mut pkd = PackedBools::new();
 
-        pkd.set_all([
-            false, true, false, true, true, false, false, true
-        ]);
+        pkd.set_all([false, true, false, true, true, false, false, true]);
         pkd.set(false, 3);
         pkd.set(true, 4);
 
