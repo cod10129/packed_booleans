@@ -3,8 +3,9 @@
 #![no_std]
 
 use core::{
+    fmt,
     iter::FusedIterator,
-    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not}, fmt,
+    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
 };
 
 /// A type containing 8 `bool` values,
@@ -81,7 +82,7 @@ impl PackedBools {
             0..=7 => {
                 match val {
                     true => self.0 |= 1 << idx,
-                    false => self.0 &= !(1 << idx)
+                    false => self.0 &= !(1 << idx),
                 }
                 Some(())
             }
@@ -287,5 +288,19 @@ mod tests {
         pkd.set_all(arr);
 
         assert_eq!(pkd, PackedBools::new_vals(arr));
+    }
+
+    #[test]
+    fn iter() {
+        let pkd = PackedBools::new();
+        for b in pkd.into_iter() {
+            assert!(!b);
+        }
+        let arr = [false, true, false, true, false, false, false, true];
+
+        PackedBools::new_vals(arr)
+            .into_iter()
+            .zip(arr.into_iter())
+            .for_each(|(b1, b2)| assert_eq!(b1, b2));
     }
 }
