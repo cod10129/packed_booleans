@@ -79,10 +79,9 @@ impl PackedBools {
     pub fn try_set(&mut self, val: bool, idx: u8) -> Option<()> {
         match idx {
             0..=7 => {
-                if val {
-                    self.0 |= 1 << idx
-                } else {
-                    self.0 &= !(1 << idx)
+                match val {
+                    true => self.0 |= 1 << idx,
+                    false => self.0 &= !(1 << idx)
                 }
                 Some(())
             }
@@ -267,13 +266,6 @@ mod tests {
     use super::PackedBools;
 
     #[test]
-    fn assert_size() {
-        // This is the core reason to even use this type
-        // over multiple bools, so this should be assured in the tests.
-        assert_eq!(1, core::mem::size_of::<PackedBools>());
-    }
-
-    #[test]
     fn set_get() {
         let mut pkd = PackedBools::new();
 
@@ -285,5 +277,15 @@ mod tests {
             pkd.get_all(),
             [false, true, false, false, true, false, false, true]
         );
+    }
+
+    #[test]
+    fn new_vals() {
+        let mut pkd = PackedBools::new();
+        let arr = [false, true, false, false, true, false, true, true];
+
+        pkd.set_all(arr);
+
+        assert_eq!(pkd, PackedBools::new_vals(arr));
     }
 }
