@@ -20,17 +20,22 @@ impl PackedBools {
         Self(0)
     }
 
+    /// Creates a new `PackedBools` with the given values.
+    pub fn new_vals(vals: [bool; 8]) -> PackedBools {
+        let mut out = 0;
+        vals.into_iter().zip(0..8).for_each(|(b, idx)| out |= (b as u8) << idx);
+        PackedBools(out)
+    }
+
     /// Sets all the booleans to the ones given.
     pub fn set_all(&mut self, vals: [bool; 8]) {
-        for (val, idx) in vals.into_iter().zip(0..=7) {
-            self.set(val, idx)
-        }
+        vals.into_iter().zip(0..8).for_each(|(val, idx)| self.set(val, idx))
     }
 
     /// Gets all the booleans.
     pub fn get_all(&self) -> [bool; 8] {
         let mut arr = [false; 8];
-        for idx in 0..=7 {
+        for idx in 0..8 {
             arr[<u8 as Into<usize>>::into(idx)] = self.get(idx);
         }
         arr
