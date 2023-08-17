@@ -4,7 +4,7 @@
 
 use core::{
     iter::FusedIterator,
-    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
+    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not}, fmt,
 };
 
 /// A type containing 8 `bool` values,
@@ -23,21 +23,25 @@ impl PackedBools {
     /// Creates a new `PackedBools` with the given values.
     pub fn new_vals(vals: [bool; 8]) -> PackedBools {
         let mut out = 0;
-        vals.into_iter().zip(0..8).for_each(|(b, idx)| out |= (b as u8) << idx);
+        vals.into_iter()
+            .zip(0..8)
+            .for_each(|(b, idx)| out |= (b as u8) << idx);
         PackedBools(out)
     }
 
     /// Sets all the booleans to the ones given.
     pub fn set_all(&mut self, vals: [bool; 8]) {
-        vals.into_iter().zip(0..8).for_each(|(val, idx)| self.set(val, idx))
+        vals.into_iter()
+            .zip(0..8)
+            .for_each(|(val, idx)| self.set(val, idx))
     }
 
     /// Gets all the booleans.
     pub fn get_all(&self) -> [bool; 8] {
         let mut arr = [false; 8];
-        for idx in 0..8 {
-            arr[<u8 as Into<usize>>::into(idx)] = self.get(idx);
-        }
+        arr.iter_mut()
+            .zip(0..8)
+            .for_each(|(b, idx)| *b = self.get(idx));
         arr
     }
 
@@ -165,6 +169,12 @@ impl IntoIterator for PackedBools {
 
     fn into_iter(self) -> Self::IntoIter {
         IntoIter::new(self)
+    }
+}
+
+impl fmt::Debug for PackedBools {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!("{:#b}", self.0))
     }
 }
 
