@@ -218,7 +218,7 @@ impl PackedU8Range {
     fn iter_next(&mut self) -> Option<u8> {
         let start = self.get_start();
         (self.0 < 0b11110000 && start < self.get_end()).then(|| {
-            self.0 += 0b0001000; // increment start
+            self.0 += 0b00010000; // increment start
             start
         })
     }
@@ -231,8 +231,8 @@ impl PackedU8Range {
         })
     }
 
-    fn len(&self) -> usize {
-        (self.get_end() - self.get_start()).into()
+    fn len(&self) -> u8 {
+        self.get_end() - self.get_start()
     }
 }
 
@@ -260,8 +260,14 @@ impl Iterator for IntoIter {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.range.len();
+        let len = self.range.len().into();
         (len, Some(len))
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        let n = u8::try_from(n).ok().filter(|&n| n < self.range.len())?;
+        self.range.0 += n << 4;
+        self.next()
     }
 
     fn last(mut self) -> Option<Self::Item>
@@ -280,7 +286,7 @@ impl DoubleEndedIterator for IntoIter {
 
 impl ExactSizeIterator for IntoIter {
     fn len(&self) -> usize {
-        self.range.len()
+        self.range.len().into()
     }
 }
 
@@ -317,6 +323,7 @@ mod tests {
     #[test]
     fn iter() {
         let pkd = PackedBools::new();
+        assert_eq!(pkd.into_iter().len(), 8);
         for b in pkd.into_iter() {
             assert!(!b);
         }
