@@ -26,7 +26,7 @@ impl PackedBools {
         let mut out = 0;
         vals.into_iter()
             .zip(0..8)
-            .for_each(|(b, idx)| out |= (b as u8) << idx);
+            .for_each(|(b, idx)| out |= u8::from(b) << idx);
         PackedBools(out)
     }
 
