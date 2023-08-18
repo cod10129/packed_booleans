@@ -3,7 +3,7 @@
 #![no_std]
 
 use core::{
-    fmt,
+    cmp, fmt,
     iter::FusedIterator,
     ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
 };
@@ -11,7 +11,7 @@ use core::{
 /// A type containing 8 `bool` values,
 /// while only being a single byte.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Hash)]
 #[repr(transparent)]
 pub struct PackedBools(u8);
 
@@ -116,6 +116,18 @@ impl PackedBools {
 impl From<[bool; 8]> for PackedBools {
     fn from(bools: [bool; 8]) -> Self {
         Self::new_vals(bools)
+    }
+}
+
+impl PartialOrd for PackedBools {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for PackedBools {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.get_all().cmp(&other.get_all())
     }
 }
 
