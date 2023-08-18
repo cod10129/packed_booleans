@@ -2,6 +2,11 @@
 name = "packed_booleans"
 version = "0.1.0"
 edition = "2021"
+description = "A crate to pack booleans together"
+license = "MIT"
+repository = "https://github.com/cod10129/packed_booleans"
+keywords = ["no_std", "packing"]
+categories = ["no-std", "no-std::no-alloc"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
