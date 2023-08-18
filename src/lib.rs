@@ -113,6 +113,12 @@ impl PackedBools {
     }
 }
 
+impl From<[bool; 8]> for PackedBools {
+    fn from(bools: [bool; 8]) -> Self {
+        Self::new_vals(bools)
+    }
+}
+
 impl BitAnd for PackedBools {
     type Output = PackedBools;
 
