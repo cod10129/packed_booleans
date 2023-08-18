@@ -101,7 +101,7 @@ impl PackedBools {
     }
 
     /// Toggles the boolean at the given index,
-    /// if the index is less than or equal to 7.
+    /// if the index is less than 8.
     pub fn try_toggle(&mut self, idx: u8) -> Option<()> {
         if idx < 8 {
             self.0 ^= 1 << idx;
@@ -262,6 +262,13 @@ impl Iterator for IntoIter {
     fn size_hint(&self) -> (usize, Option<usize>) {
         let len = self.range.len();
         (len, Some(len))
+    }
+
+    fn last(mut self) -> Option<Self::Item>
+    where
+        Self: Sized,
+    {
+        self.next_back()
     }
 }
 
