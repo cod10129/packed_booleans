@@ -57,11 +57,12 @@ impl PackedBools {
     }
 
     /// Gets the boolean at the given index,
-    /// if the index is less than or equal to 7.
+    /// if the index is less than 8.
     pub fn try_get(&self, idx: u8) -> Option<bool> {
-        match idx {
-            0..=7 => Some(((self.0 >> idx) & 1) != 0),
-            _ => None,
+        if idx < 8 {
+            Some(((self.0 >> idx) & 1) != 0)
+        } else {
+            None
         }
     }
 
@@ -76,17 +77,16 @@ impl PackedBools {
     }
 
     /// Sets the boolean at the given index to val,
-    /// if the index is less than or equal to 7.
+    /// if the index is less than 8.
     pub fn try_set(&mut self, val: bool, idx: u8) -> Option<()> {
-        match idx {
-            0..=7 => {
-                match val {
-                    true => self.0 |= 1 << idx,
-                    false => self.0 &= !(1 << idx),
-                }
-                Some(())
-            }
-            _ => None,
+        if idx < 8 {
+            match val {
+                true => self.0 |= 1 << idx,
+                false => self.0 &= !(1 << idx),
+            };
+            Some(())
+        } else {
+            None
         }
     }
 
@@ -103,12 +103,11 @@ impl PackedBools {
     /// Toggles the boolean at the given index,
     /// if the index is less than or equal to 7.
     pub fn try_toggle(&mut self, idx: u8) -> Option<()> {
-        match idx {
-            0..=7 => {
-                self.0 ^= 1 << idx;
-                Some(())
-            }
-            _ => None,
+        if idx < 8 {
+            self.0 ^= 1 << idx;
+            Some(())
+        } else {
+            None
         }
     }
 }
