@@ -205,7 +205,7 @@ impl IntoIterator for PackedBools {
 
 impl fmt::Debug for PackedBools {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{:#b}", self.0))
+        write!(f, "{:#b}", self.0)
     }
 }
 
