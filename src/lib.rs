@@ -21,6 +21,20 @@ impl PackedBools {
         Self(0)
     }
 
+    /// Counts how many true values there are.
+    pub fn count_true(&self) -> u8 {
+        // This cast is valid because the return value
+        // of count_ones should never be more than 8
+        // (only 8 bits in `u8`)
+        self.0.count_ones() as u8
+    }
+
+    /// Counts how many false values there are.
+    pub fn count_false(&self) -> u8 {
+        // See count_true comment
+        self.0.count_zeros() as u8
+    }
+
     /// Creates a new `PackedBools` with the given values.
     pub fn new_vals(vals: [bool; 8]) -> PackedBools {
         let mut out = 0;
