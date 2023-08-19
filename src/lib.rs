@@ -216,9 +216,7 @@ struct PackedU8Range(u8);
 
 impl PackedU8Range {
     fn new(start: u8, end: u8) -> Self {
-        let mut val = start << 4;
-        val |= end;
-        PackedU8Range(val)
+        Self((start << 4) | end)
     }
 
     fn get_start(&self) -> u8 {
@@ -231,23 +229,27 @@ impl PackedU8Range {
 
     /// Note: this method does no guarding against overflows.
     fn add_to_start(&mut self, val: u8) {
-        self.0 += val << 4;
+        self.0 += val << 4
     }
 
     fn iter_next(&mut self) -> Option<u8> {
         let start = self.get_start();
-        (self.0 < 0b11110000 && start < self.get_end()).then(|| {
+        if self.0 < 0b11110000 && start < self.get_end() {
             self.add_to_start(1);
-            start
-        })
+            Some(start)
+        } else {
+            None
+        }
     }
 
     fn iter_next_back(&mut self) -> Option<u8> {
         let end = self.get_end();
-        (end > 0 && self.get_start() < end).then(|| {
+        if end > 0 && self.get_start() < end {
             self.0 -= 1; // decrement end
-            end
-        })
+            Some(end)
+        } else {
+            None
+        }
     }
 
     fn len(&self) -> u8 {
