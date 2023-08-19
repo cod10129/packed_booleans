@@ -229,10 +229,15 @@ impl PackedU8Range {
         self.0 & 0b00001111
     }
 
+    /// Note: this method does no guarding against overflows.
+    fn add_to_start(&mut self, val: u8) {
+        self.0 += val << 4;
+    }
+
     fn iter_next(&mut self) -> Option<u8> {
         let start = self.get_start();
         (self.0 < 0b11110000 && start < self.get_end()).then(|| {
-            self.0 += 0b00010000; // increment start
+            self.add_to_start(1);
             start
         })
     }
@@ -280,7 +285,7 @@ impl Iterator for IntoIter {
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         let n = u8::try_from(n).ok().filter(|&n| n < self.range.len())?;
-        self.range.0 += n << 4;
+        self.range.add_to_start(n);
         self.next()
     }
 
