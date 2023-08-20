@@ -144,49 +144,70 @@ impl Ord for PackedBools {
     }
 }
 
-impl BitAnd for PackedBools {
-    type Output = PackedBools;
+macro_rules! impl_binop {
+    (impl $op:tt $tr:ident $method:ident $assign_tr:ident $assign_method:ident) => {
+        // base impl
+        impl $tr for PackedBools {
+            type Output = PackedBools;
 
-    fn bitand(self, rhs: Self) -> Self::Output {
-        PackedBools(self.0 & rhs.0)
+            fn $method(self, rhs: Self) -> PackedBools {
+                PackedBools(self.0 $op rhs.0)
+            }
+        }
+
+        // ref impls
+        impl $tr<PackedBools> for &PackedBools {
+            type Output = PackedBools;
+
+            fn $method(self, rhs: PackedBools) -> PackedBools {
+                $tr::$method(*self, rhs)
+            }
+        }
+
+        impl $tr<&PackedBools> for PackedBools {
+            type Output = PackedBools;
+
+            fn $method(self, rhs: &PackedBools) -> PackedBools {
+                $tr::$method(self, *rhs)
+            }
+        }
+
+        impl $tr<&PackedBools> for &PackedBools {
+            type Output = PackedBools;
+
+            fn $method(self, rhs: &PackedBools) -> PackedBools {
+                $tr::$method(*self, *rhs)
+            }
+        }
+
+        // op= impls
+        impl $assign_tr<PackedBools> for PackedBools {
+            fn $assign_method(&mut self, rhs: Self) {
+                *self = self.$method(rhs)
+            }
+        }
+
+        impl $assign_tr<&PackedBools> for PackedBools {
+            fn $assign_method(&mut self, rhs: &PackedBools) {
+                *self = self.$method(*rhs)
+            }
+        }
     }
 }
 
-impl BitAndAssign for PackedBools {
-    fn bitand_assign(&mut self, rhs: Self) {
-        *self = self.bitand(rhs)
-    }
-}
-
-impl BitOr for PackedBools {
-    type Output = PackedBools;
-
-    fn bitor(self, rhs: Self) -> Self::Output {
-        PackedBools(self.0 | rhs.0)
-    }
-}
-
-impl BitOrAssign for PackedBools {
-    fn bitor_assign(&mut self, rhs: Self) {
-        *self = self.bitor(rhs)
-    }
-}
-
-impl BitXor for PackedBools {
-    type Output = PackedBools;
-
-    fn bitxor(self, rhs: Self) -> Self::Output {
-        PackedBools(self.0 ^ rhs.0)
-    }
-}
-
-impl BitXorAssign for PackedBools {
-    fn bitxor_assign(&mut self, rhs: Self) {
-        *self = self.bitxor(rhs)
-    }
-}
+impl_binop! { impl & BitAnd bitand BitAndAssign bitand_assign }
+impl_binop! { impl | BitOr bitor BitOrAssign bitor_assign }
+impl_binop! { impl ^ BitXor bitxor BitXorAssign bitxor_assign }
 
 impl Not for PackedBools {
+    type Output = PackedBools;
+
+    fn not(self) -> Self::Output {
+        PackedBools(!self.0)
+    }
+}
+
+impl Not for &PackedBools {
     type Output = PackedBools;
 
     fn not(self) -> Self::Output {
