@@ -242,21 +242,31 @@ impl fmt::Binary for PackedBools {
 struct PackedU8Range(u8);
 
 impl PackedU8Range {
+    #[inline]
     fn new(start: u8, end: u8) -> Self {
         Self((start << 4) | end)
     }
 
+    #[inline]
     fn get_start(&self) -> u8 {
         self.0 >> 4
     }
 
+    #[inline]
     fn get_end(&self) -> u8 {
         self.0 & 0b00001111
     }
 
     /// Note: this method does no guarding against overflows.
+    #[inline]
     fn add_to_start(&mut self, val: u8) {
         self.0 += val << 4
+    }
+
+    /// Note: this method does no guarding against underflows.
+    #[inline]
+    fn sub_from_end(&mut self, val: u8) {
+        self.0 -= val
     }
 
     fn iter_next(&mut self) -> Option<u8> {
@@ -272,13 +282,14 @@ impl PackedU8Range {
     fn iter_next_back(&mut self) -> Option<u8> {
         let end = self.get_end();
         if end > 0 && self.get_start() < end {
-            self.0 -= 1; // decrement end
+            self.sub_from_end(1);
             Some(end)
         } else {
             None
         }
     }
 
+    #[inline]
     fn len(&self) -> u8 {
         self.get_end() - self.get_start()
     }
@@ -292,6 +303,7 @@ pub struct IntoIter {
 }
 
 impl IntoIter {
+    #[inline]
     fn new(bools: PackedBools) -> Self {
         Self {
             bools,
@@ -329,6 +341,12 @@ impl Iterator for IntoIter {
 impl DoubleEndedIterator for IntoIter {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.range.iter_next_back().map(|idx| self.bools.get(idx))
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        let n = u8::try_from(n).ok().filter(|&n| n < self.range.len())?;
+        self.range.sub_from_end(n);
+        self.next_back()
     }
 }
 
@@ -381,5 +399,31 @@ mod tests {
             .into_iter()
             .zip(arr.into_iter())
             .for_each(|(b1, b2)| assert_eq!(b1, b2));
+    }
+
+    #[test]
+    fn iter_back() {
+        let arr = [true, false, false, true, true, false, false, false];
+        PackedBools::from(arr)
+            .into_iter()
+            .rev()
+            .zip(arr.into_iter().rev())
+            .for_each(|(b1, b2)| assert_eq!(b1, b2));
+    }
+
+    #[test]
+    #[allow(clippy::iter_nth_zero)]
+    fn iter_nth() {
+        let mut iter =
+            PackedBools::from([true, false, false, true, false, false, true, true]).into_iter();
+
+        assert_eq!(iter.nth(0), Some(true));
+        assert_eq!(iter.nth_back(1), Some(true));
+        assert_eq!(iter.nth_back(0), Some(false));
+        assert_eq!(iter.nth(3), Some(false));
+        assert_eq!(iter.nth(0), None);
+        assert_eq!(iter.nth_back(0), None);
+        assert_eq!(iter.nth(12), None);
+        assert_eq!(iter.nth_back(100), None);
     }
 }
