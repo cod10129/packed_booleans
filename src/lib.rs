@@ -230,6 +230,12 @@ impl fmt::Debug for PackedBools {
     }
 }
 
+impl fmt::Binary for PackedBools {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Binary::fmt(&self.0, f)
+    }
+}
+
 /// This struct is a smaller range than `ops::Range<u8>` for `IntoIter`,
 /// considering the values will only ever go up to 8.
 #[repr(transparent)]
