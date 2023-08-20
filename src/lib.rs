@@ -244,7 +244,7 @@ struct PackedU8Range(u8);
 impl PackedU8Range {
     #[inline]
     fn new(start: u8, end: u8) -> Self {
-        Self((start << 4) | end)
+        Self((start << 4) | (end - 1))
     }
 
     #[inline]
@@ -271,7 +271,7 @@ impl PackedU8Range {
 
     fn iter_next(&mut self) -> Option<u8> {
         let start = self.get_start();
-        if self.0 < 0b11110000 && start < self.get_end() {
+        if self.0 < 0b11110000 && start <= self.get_end() {
             self.add_to_start(1);
             Some(start)
         } else {
@@ -281,7 +281,7 @@ impl PackedU8Range {
 
     fn iter_next_back(&mut self) -> Option<u8> {
         let end = self.get_end();
-        if end > 0 && self.get_start() < end {
+        if end > 0 && self.get_start() <= end {
             self.sub_from_end(1);
             Some(end)
         } else {
@@ -291,7 +291,7 @@ impl PackedU8Range {
 
     #[inline]
     fn len(&self) -> u8 {
-        self.get_end() - self.get_start()
+        (self.get_end() + 1) - self.get_start()
     }
 }
 
@@ -360,6 +360,7 @@ impl FusedIterator for IntoIter {}
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
     use super::PackedBools;
 
     #[test]
@@ -417,10 +418,13 @@ mod tests {
         let mut iter =
             PackedBools::from([true, false, false, true, false, false, true, true]).into_iter();
 
-        assert_eq!(iter.nth(0), Some(true));
-        assert_eq!(iter.nth_back(1), Some(true));
-        assert_eq!(iter.nth_back(0), Some(false));
-        assert_eq!(iter.nth(3), Some(false));
+        assert_eq!(iter.nth(0), Some(true)); // state = [_, false, false, true, false, false, true, true]
+        assert_eq!(iter.nth_back(1), Some(true)); // state = [_, false, false, true, false, false, _, _]
+        assert_eq!(iter.nth_back(0), Some(false)); // state = [_, false, false, true, false, _, _, _]
+        std::dbg!(iter.range.get_start());
+        std::dbg!(iter.range.get_end());
+        std::dbg!(iter.range.len());
+        assert_eq!(iter.nth(3), Some(false)); // state = [_, _, _, _, _, _, _, _]
         assert_eq!(iter.nth(0), None);
         assert_eq!(iter.nth_back(0), None);
         assert_eq!(iter.nth(12), None);
