@@ -39,7 +39,7 @@ impl PackedBools {
     pub fn new_vals(vals: [bool; 8]) -> PackedBools {
         let mut out = 0;
         vals.into_iter()
-            .zip(0..8)
+            .zip(0..8u8)
             .for_each(|(b, idx)| out |= u8::from(b) << idx);
         PackedBools(out)
     }
@@ -47,7 +47,7 @@ impl PackedBools {
     /// Sets all the booleans to the ones given.
     pub fn set_all(&mut self, vals: [bool; 8]) {
         vals.into_iter()
-            .zip(0..8)
+            .zip(0..8u8)
             .for_each(|(val, idx)| self.set(val, idx))
     }
 
@@ -55,7 +55,7 @@ impl PackedBools {
     pub fn get_all(&self) -> [bool; 8] {
         let mut arr = [false; 8];
         arr.iter_mut()
-            .zip(0..8)
+            .zip(0..8u8)
             .for_each(|(b, idx)| *b = self.get(idx));
         arr
     }
