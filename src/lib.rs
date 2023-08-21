@@ -46,9 +46,8 @@ impl PackedBools {
 
     /// Sets all the booleans to the ones given.
     pub fn set_all(&mut self, vals: [bool; 8]) {
-        vals.into_iter()
-            .zip(0..8u8)
-            .for_each(|(val, idx)| self.set(val, idx))
+        self.0 = 0;
+        *self = Self::new_vals(vals);
     }
 
     /// Gets all the booleans.
