@@ -359,7 +359,6 @@ impl FusedIterator for IntoIter {}
 
 #[cfg(test)]
 mod tests {
-    extern crate std;
     use super::PackedBools;
 
     #[test]
@@ -420,9 +419,6 @@ mod tests {
         assert_eq!(iter.nth(0), Some(true)); // state = [_, false, false, true, false, false, true, true]
         assert_eq!(iter.nth_back(1), Some(true)); // state = [_, false, false, true, false, false, _, _]
         assert_eq!(iter.nth_back(0), Some(false)); // state = [_, false, false, true, false, _, _, _]
-        std::dbg!(iter.range.get_start());
-        std::dbg!(iter.range.get_end());
-        std::dbg!(iter.range.len());
         assert_eq!(iter.nth(3), Some(false)); // state = [_, _, _, _, _, _, _, _]
         assert_eq!(iter.nth(0), None);
         assert_eq!(iter.nth_back(0), None);
