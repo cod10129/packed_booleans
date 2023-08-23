@@ -225,7 +225,7 @@ impl IntoIterator for PackedBools {
 
 impl fmt::Debug for PackedBools {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#010b}", self.0)
+        write!(f, "PackedBools({:#010b})", self.0)
     }
 }
 
@@ -389,7 +389,7 @@ mod tests {
     #[test]
     fn debug() {
         let pkd = PackedBools::new();
-        assert_eq!(std::format!("{pkd:?}"), "0b00000000");
+        assert_eq!(std::format!("{pkd:?}"), "PackedBools(0b00000000)");
     }
 
     #[test]
