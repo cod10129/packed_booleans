@@ -225,7 +225,15 @@ impl IntoIterator for PackedBools {
 
 impl fmt::Debug for PackedBools {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "PackedBools({:#010b})", self.0)
+        if f.alternate() {
+            // manual pretty-printing
+            // this exists because I need to print the binary representation of self.0
+            // #[derive] doesn't work because of this, and nor does DebugTuple.
+            write!(f, "PackedBools(\n    {:#010b},\n)", self.0)
+        } else {
+            // normal printing
+            write!(f, "PackedBools({:#010b})", self.0)
+        }
     }
 }
 
@@ -360,6 +368,7 @@ impl FusedIterator for IntoIter {}
 #[cfg(test)]
 mod tests {
     extern crate std;
+
     use super::PackedBools;
 
     #[test]
@@ -390,6 +399,7 @@ mod tests {
     fn debug() {
         let pkd = PackedBools::new();
         assert_eq!(std::format!("{pkd:?}"), "PackedBools(0b00000000)");
+        assert_eq!(std::format!("{pkd:#?}"), "PackedBools(\n    0b00000000,\n)");
     }
 
     #[test]
