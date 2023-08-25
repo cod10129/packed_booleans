@@ -239,7 +239,11 @@ impl fmt::Debug for PackedBools {
 
 impl fmt::Binary for PackedBools {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Binary::fmt(&self.0, f)
+        if f.alternate() {
+            write!(f, "{:#010b}", self.0)
+        } else {
+            write!(f, "{:08b}", self.0)
+        }
     }
 }
 
