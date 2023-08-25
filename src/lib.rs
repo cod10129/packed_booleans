@@ -249,6 +249,8 @@ impl fmt::Binary for PackedBools {
 
 /// This struct is a smaller range than `ops::Range<u8>` for `IntoIter`,
 /// considering the values will only ever go up to 8.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 struct PackedU8Range(u8);
 
@@ -307,6 +309,8 @@ impl PackedU8Range {
 }
 
 /// An iterator over the booleans in a `PackedBools`.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct IntoIter {
     bools: PackedBools,
