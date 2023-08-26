@@ -1,5 +1,4 @@
-# packed_booleans
-A crate for packing booleans together.
+# A crate for packing booleans
 
 The standard `bool` type is always a full byte.
 This becomes a problem when multiple booleans
