@@ -237,10 +237,27 @@ impl fmt::Debug for PackedBools {
 impl fmt::Binary for PackedBools {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
-            write!(f, "{:#010b}", self.0)
-        } else {
-            write!(f, "{:08b}", self.0)
+            f.write_str("0b");
         }
+        write!(f, "{:08b}", self.0)
+    }
+}
+
+impl fmt::LowerHex for PackedBools {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            f.write_str("0x");
+        }
+        write!(f, "{:02x}", self.0)
+    }
+}
+
+impl fmt::UpperHex for PackedBools {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            f.write_str("0x");
+        }
+        write!(f, "{:02X}", self.0)
     }
 }
 
