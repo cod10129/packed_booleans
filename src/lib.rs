@@ -234,28 +234,36 @@ impl fmt::Debug for PackedBools {
     }
 }
 
+/// Displays the PackedBools in binary.
+/// Note that the order may not be what you expect.
+/// The "first" bool will actually be last in the formatting.
+/// Note that this impl is not stable.
 impl fmt::Binary for PackedBools {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
-            f.write_str("0b");
+            f.write_str("0b")?;
         }
         write!(f, "{:08b}", self.0)
     }
 }
 
+/// Displays the PackedBools in lowercase hexadecimal.
+/// See notes on fmt::Binary impl.
 impl fmt::LowerHex for PackedBools {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
-            f.write_str("0x");
+            f.write_str("0x")?;
         }
         write!(f, "{:02x}", self.0)
     }
 }
 
+/// Displays the PackedBools in uppercase hexadecimal.
+/// See notes on fmt::Binary impl.
 impl fmt::UpperHex for PackedBools {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
-            f.write_str("0x");
+            f.write_str("0x")?;
         }
         write!(f, "{:02X}", self.0)
     }
@@ -386,7 +394,8 @@ impl FusedIterator for IntoIter {}
 
 #[cfg(test)]
 mod tests {
-    extern crate std;
+    extern crate alloc;
+    use alloc::format;
 
     use super::PackedBools;
 
@@ -417,8 +426,20 @@ mod tests {
     #[test]
     fn debug() {
         let pkd = PackedBools::new();
-        assert_eq!(std::format!("{pkd:?}"), "PackedBools(0b00000000)");
-        assert_eq!(std::format!("{pkd:#?}"), "PackedBools(\n    0b00000000,\n)");
+        assert_eq!(format!("{pkd:?}"), "PackedBools(0b00000000)");
+        assert_eq!(format!("{pkd:#?}"), "PackedBools(\n    0b00000000,\n)");
+    }
+
+    #[test]
+    fn formatting() {
+        // formats like 11010100
+        let pkd = PackedBools::from([false, false, true, false, true, false, true, true]);
+        assert_eq!(format!("{pkd:b}"), "11010100");
+        assert_eq!(format!("{pkd:#b}"), "0b11010100");
+        assert_eq!(format!("{pkd:x}"), "d4");
+        assert_eq!(format!("{pkd:#x}"), "0xd4");
+        assert_eq!(format!("{pkd:X}"), "D4");
+        assert_eq!(format!("{pkd:#X}"), "0xD4");
     }
 
     #[test]
