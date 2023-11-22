@@ -17,7 +17,7 @@ pub struct PackedBools(u8);
 
 impl PackedBools {
     /// Creates a new `PackedBools` where all values are false.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(0)
     }
 
@@ -37,25 +37,22 @@ impl PackedBools {
 
     /// Creates a new `PackedBools` with the given values.
     pub fn new_vals(vals: [bool; 8]) -> PackedBools {
-        let mut out = 0;
-        vals.into_iter()
+        PackedBools(vals.into_iter()
             .zip(0..8u8)
-            .for_each(|(b, idx)| out |= u8::from(b) << idx);
-        PackedBools(out)
+            .fold(0, |acc, (b, idx)| acc.bitor((b as u8) << idx)))
     }
 
     /// Sets all the booleans to the ones given.
     pub fn set_all(&mut self, vals: [bool; 8]) {
-        self.0 = 0;
         *self = Self::new_vals(vals);
     }
 
     /// Gets all the booleans.
     pub fn get_all(&self) -> [bool; 8] {
         let mut arr = [false; 8];
-        arr.iter_mut()
-            .zip(0..8u8)
-            .for_each(|(b, idx)| *b = self.get(idx));
+        for (idx, b) in arr.iter_mut().enumerate() {
+            *b = ((self.0 >> idx) & 1) != 0
+        }
         arr
     }
 
@@ -345,10 +342,7 @@ impl Iterator for IntoIter {
         self.next()
     }
 
-    fn last(mut self) -> Option<Self::Item>
-    where
-        Self: Sized,
-    {
+    fn last(mut self) -> Option<Self::Item> {
         self.next_back()
     }
 }
