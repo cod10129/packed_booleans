@@ -352,7 +352,7 @@ impl IntoIter {
 impl Iterator for IntoIter {
     type Item = bool;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next(&mut self) -> Option<bool> {
         self.range.iter_next().map(|idx| self.bools.get(idx))
     }
 
@@ -361,23 +361,27 @@ impl Iterator for IntoIter {
         (len, Some(len))
     }
 
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+    fn nth(&mut self, n: usize) -> Option<bool> {
         let n = u8::try_from(n).ok().filter(|&n| n < self.range.len())?;
         self.range.add_to_start(n);
         self.next()
     }
 
-    fn last(mut self) -> Option<Self::Item> {
+    fn last(mut self) -> Option<bool> {
         self.next_back()
     }
+
+    fn max(self) -> Option<bool> { self.any(|b| b) }
+
+    fn min(self) -> Option<bool> { !self.max() }
 }
 
 impl DoubleEndedIterator for IntoIter {
-    fn next_back(&mut self) -> Option<Self::Item> {
+    fn next_back(&mut self) -> Option<bool> {
         self.range.iter_next_back().map(|idx| self.bools.get(idx))
     }
 
-    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+    fn nth_back(&mut self, n: usize) -> Option<bool> {
         let n = u8::try_from(n).ok().filter(|&n| n < self.range.len())?;
         self.range.sub_from_end(n);
         self.next_back()
