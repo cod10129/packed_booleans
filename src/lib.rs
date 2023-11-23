@@ -4,6 +4,6 @@
 #![warn(missing_docs)]
 
 mod macros;
-pub mod eight;
+mod eight;
 
 pub use eight::{PackedBools8, IntoIter8};
