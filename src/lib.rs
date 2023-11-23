@@ -5,7 +5,7 @@
 
 pub mod eight;
 
-pub use eight::{PackedBools8, IntoIter8};
+#[macro_use]
+mod macros;
 
-pub use PackedBools8 as PackedBools;
-pub use IntoIter8 as IntoIter;
+pub use eight::{PackedBools8, IntoIter8};

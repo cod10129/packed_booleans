@@ -6,6 +6,8 @@ use core::{
     ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
 };
 
+use super::impl_binop;
+
 /// A type containing 8 `bool` values,
 /// while only being a single byte.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -128,69 +130,6 @@ impl PackedBools8 {
 impl From<[bool; 8]> for PackedBools8 {
     fn from(bools: [bool; 8]) -> Self {
         Self::new_vals(bools)
-    }
-}
-
-impl PartialOrd for PackedBools8 {
-    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for PackedBools8 {
-    fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.get_all().cmp(&other.get_all())
-    }
-}
-
-macro_rules! impl_binop {
-    (impl $op:tt for $type:ty: $tr:ident $method:ident $assign_tr:ident $assign_method:ident) => {
-        // base impl
-        impl $tr for $type {
-            type Output = $type;
-
-            fn $method(self, rhs: Self) -> $type {
-                <$type>::from_bits(self.0 $op rhs.0)
-            }
-        }
-
-        // ref impls
-        impl $tr<$type> for &$type {
-            type Output = $type;
-
-            fn $method(self, rhs: $type) -> $type {
-                $tr::$method(*self, rhs)
-            }
-        }
-
-        impl $tr<&$type> for $type {
-            type Output = $type;
-
-            fn $method(self, rhs: &$type) -> $type {
-                $tr::$method(self, *rhs)
-            }
-        }
-
-        impl $tr<&$type> for &$type {
-            type Output = $type;
-
-            fn $method(self, rhs: &$type) -> $type {
-                $tr::$method(*self, *rhs)
-            }
-        }
-
-        // op= impls
-        impl $assign_tr<$type> for $type {
-            fn $assign_method(&mut self, rhs: Self) {
-                *self = self.$method(rhs)
-            }
-        }
-
-        impl $assign_tr<&$type> for $type {
-            fn $assign_method(&mut self, rhs: &$type) {
-                *self = self.$method(*rhs)
-            }
-        }
     }
 }
 
