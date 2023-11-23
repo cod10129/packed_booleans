@@ -1,155 +1,18 @@
 //! Packing 8 booleans together into a byte.
 
-use core::{
-    fmt, iter::FusedIterator,
-    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
-};
+use core::iter::FusedIterator;
 
-use crate::macros::impl_binop;
-
-/// A type containing 8 `bool` values,
-/// while only being a single byte.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Copy, PartialEq, Eq, Default, Hash)]
-#[repr(transparent)]
-pub struct PackedBools8(u8);
-
-impl PackedBools8 {
-    /// Creates a new `PackedBools8` where all values are false.
-    pub const fn new() -> Self {
-        Self(0)
-    }
-
-    /// Creates a new `PackedBools8` from the given bits.
-    pub fn from_bits(bits: u8) -> Self {
-        Self(bits)
-    }
-
-    /// Counts how many true values there are.
-    pub fn count_true(&self) -> u8 {
-        // This cast is valid because the return value
-        // of count_ones should never be more than 8
-        // (only 8 bits in `u8`)
-        self.0.count_ones() as u8
-    }
-
-    /// Counts how many false values there are.
-    pub fn count_false(&self) -> u8 {
-        // See count_true comment
-        self.0.count_zeros() as u8
-    }
-
-    /// Creates a new `PackedBools8` with the given values.
-    pub fn new_vals(vals: [bool; 8]) -> Self {
-        Self(vals.into_iter()
-            .zip(0..8u8)
-            .fold(0, |acc, (b, idx)| acc.bitor((b as u8) << idx)))
-    }
-
-    /// Sets all the booleans to the ones given.
-    pub fn set_all(&mut self, vals: [bool; 8]) {
-        *self = Self::new_vals(vals);
-    }
-
-    /// Gets all the booleans.
-    pub fn get_all(&self) -> [bool; 8] {
-        let mut arr = [false; 8];
-        for (idx, b) in arr.iter_mut().enumerate() {
-            *b = ((self.0 >> idx) & 1) != 0
-        }
-        arr
-    }
-
-    /// Gets the boolean at the given index.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the given index is greater than 7.
-    pub fn get(&self, idx: u8) -> bool {
-        self.try_get(idx)
-            .expect("The index cannot be greater than 7.")
-    }
-
-    /// Gets the boolean at the given index,
-    /// if the index is less than 8.
-    pub fn try_get(&self, idx: u8) -> Option<bool> {
-        if idx < 8 {
-            Some(((self.0 >> idx) & 1) != 0)
-        } else {
-            None
-        }
-    }
-
-    /// Sets the boolean at the given index to val.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the given index is greater than 7.
-    pub fn set(&mut self, val: bool, idx: u8) {
-        self.try_set(val, idx)
-            .expect("The index cannot be greater than 7.")
-    }
-
-    /// Sets the boolean at the given index to val,
-    /// if the index is less than 8.
-    pub fn try_set(&mut self, val: bool, idx: u8) -> Option<()> {
-        if idx < 8 {
-            match val {
-                true => self.0 |= 1 << idx,
-                false => self.0 &= !(1 << idx),
-            };
-            Some(())
-        } else {
-            None
-        }
-    }
-
-    /// Toggles the boolean at the given index.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the given index is greater than 7.
-    pub fn toggle(&mut self, idx: u8) {
-        self.try_toggle(idx)
-            .expect("The index cannot be greater than 7.")
-    }
-
-    /// Toggles the boolean at the given index,
-    /// if the index is less than 8.
-    pub fn try_toggle(&mut self, idx: u8) -> Option<()> {
-        if idx < 8 {
-            self.0 ^= 1 << idx;
-            Some(())
-        } else {
-            None
-        }
-    }
-}
-
-impl From<[bool; 8]> for PackedBools8 {
-    fn from(bools: [bool; 8]) -> Self {
-        Self::new_vals(bools)
-    }
-}
-
-impl_binop! { impl & for PackedBools8: BitAnd bitand BitAndAssign bitand_assign }
-impl_binop! { impl | for PackedBools8: BitOr bitor BitOrAssign bitor_assign }
-impl_binop! { impl ^ for PackedBools8: BitXor bitxor BitXorAssign bitxor_assign }
-
-impl Not for PackedBools8 {
-    type Output = PackedBools8;
-
-    fn not(self) -> Self::Output {
-        PackedBools8(!self.0)
-    }
-}
-
-impl Not for &PackedBools8 {
-    type Output = PackedBools8;
-
-    fn not(self) -> Self::Output {
-        PackedBools8(!self.0)
-    }
+crate::macros::packed_bools_type!{
+    NAME = PackedBools8,
+    REPR = u8,
+    BOOL_COUNT = 8,
+    BCOUNT_MINUS1 = 7,
+    BYTE_DESCRIPTION = "a single byte",
+    PRETTY_DEBUG = "PackedBools8(\n    {:#010b},\n)",
+    DEBUG = "PackedBools8({:#010b})",
+    BINARY = "{:08b}",
+    LOW_HEX = "{:02x}",
+    UPPER_HEX = "{:02X}"
 }
 
 impl IntoIterator for PackedBools8 {
@@ -158,55 +21,6 @@ impl IntoIterator for PackedBools8 {
 
     fn into_iter(self) -> IntoIter8 {
         IntoIter8::new(self)
-    }
-}
-
-impl fmt::Debug for PackedBools8 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            // manual pretty-printing
-            // this exists because I need to print the binary representation of self.0
-            // #[derive] doesn't work because of this, and nor does DebugTuple.
-            write!(f, "PackedBools8(\n    {:#010b},\n)", self.0)
-        } else {
-            // normal printing
-            write!(f, "PackedBools8({:#010b})", self.0)
-        }
-    }
-}
-
-/// Displays the PackedBools8 in binary.
-/// Note that the order may not be what you expect.
-/// The "first" bool will actually be last in the formatting.
-/// Note that this impl is not stable.
-impl fmt::Binary for PackedBools8 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            f.write_str("0b")?;
-        }
-        write!(f, "{:08b}", self.0)
-    }
-}
-
-/// Displays the PackedBools8 in lowercase hexadecimal.
-/// See notes on fmt::Binary impl.
-impl fmt::LowerHex for PackedBools8 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            f.write_str("0x")?;
-        }
-        write!(f, "{:02x}", self.0)
-    }
-}
-
-/// Displays the PackedBools8 in uppercase hexadecimal.
-/// See notes on fmt::Binary impl.
-impl fmt::UpperHex for PackedBools8 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if f.alternate() {
-            f.write_str("0x")?;
-        }
-        write!(f, "{:02X}", self.0)
     }
 }
 
