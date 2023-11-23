@@ -3,9 +3,7 @@
 #![no_std]
 #![warn(missing_docs)]
 
-pub mod eight;
-
-#[macro_use]
 mod macros;
+pub mod eight;
 
 pub use eight::{PackedBools8, IntoIter8};

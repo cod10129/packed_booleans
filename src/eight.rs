@@ -1,12 +1,11 @@
 //! Packing 8 booleans together into a byte.
 
 use core::{
-    cmp, fmt,
-    iter::FusedIterator,
+    fmt, iter::FusedIterator,
     ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
 };
 
-use super::impl_binop;
+use crate::macros::impl_binop;
 
 /// A type containing 8 `bool` values,
 /// while only being a single byte.
