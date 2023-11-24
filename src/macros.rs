@@ -87,7 +87,7 @@ macro_rules! packed_bools_type {
             pub const fn new() -> Self { Self(0) }
 
             #[doc = concat!("Creates a new `", stringify!($pkd), "` from the given bits.")]
-            pub fn from_bits(bits: u8) -> Self { Self(bits) }
+            pub fn from_bits(bits: $repr) -> Self { Self(bits) }
 
             /// Counts how many true values there are.
             pub fn count_true(&self) -> u8 {
@@ -100,23 +100,23 @@ macro_rules! packed_bools_type {
             }
 
             #[doc = concat!("Creates a new `", stringify!($pkd), "` from the given values.")]
-            pub fn new_vals(vals: [bool; 8]) -> Self {
-                let out = vals.into_iter()
-                    .map(u8::from)
-                    .zip(0..8u8)
+            pub fn new_vals(vals: [bool; $bcount]) -> Self {
+                let out: $repr = vals.into_iter()
+                    .map($repr::from)
+                    .zip(0..$bcount)
                     .fold(0, |acc, (b, idx)| acc.bitor(b << idx));
                 Self(out)
             }
 
             /// Sets all the booleans to the ones given.
-            pub fn set_all(&mut self, vals: [bool; 8]) {
+            pub fn set_all(&mut self, vals: [bool; $bcount]) {
                 *self = Self::new_vals(vals);
             }
 
             /// Gets all the booleans.
-            pub fn get_all(&self) -> [bool; 8] {
-                let mut arr = [false; 8];
-                for (b, idx) in arr.iter_mut().zip(0..8u8) {
+            pub fn get_all(&self) -> [bool; $bcount] {
+                let mut arr = [false; $bcount];
+                for (b, idx) in arr.iter_mut().zip(0..$bcount) {
                     *b = ((self.0 >> idx) & 1) != 0;
                 }
                 arr
@@ -230,7 +230,7 @@ macro_rules! packed_bools_type {
 
         #[doc = concat!("Displays the ", stringify!($pkd), " in lowercase hexadecimal.")]
         /// See the notes on fmt::Binary impl for ordering and stability.
-        impl core::fmt::LowerHex for PackedBools8 {
+        impl core::fmt::LowerHex for $pkd {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 if f.alternate() {
                     f.write_str("0x")?;
@@ -241,7 +241,7 @@ macro_rules! packed_bools_type {
 
         #[doc = concat!("Displays the ", stringify!($pkd), " in uppercase hexadecimal.")]
         /// See the notes on fmt::Binary impl for ordering and stability.
-        impl core::fmt::UpperHex for PackedBools8 {
+        impl core::fmt::UpperHex for $pkd {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 if f.alternate() {
                     f.write_str("0x")?;

@@ -5,5 +5,7 @@
 
 mod macros;
 mod eight;
+mod sixteen;
 
 pub use eight::{PackedBools8, IntoIter8};
+pub use sixteen::{PackedBools16};

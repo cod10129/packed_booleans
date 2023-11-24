@@ -87,12 +87,16 @@ impl PackedU8Range {
 
 /// An iterator over the booleans in a `PackedBools8`.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct IntoIter8 {
     bools: PackedBools8,
     range: PackedU8Range,
 }
+
+// Can't even deprecate a trait impl. FIXME REMEMBER TO REMOVE THIS!
+// #[deprecated = "Copy iterators are generally a footgun. Use clone()."]
+impl Copy for IntoIter8 {}
 
 impl IntoIter8 {
     #[inline]
